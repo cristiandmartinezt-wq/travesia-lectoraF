@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Gran Travesía Lectora</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F9F5ED;
+    --dark: #2C2416;
+    --pregunta: #2E5FA3;
+    --pregunta-light: #D6E4F7;
+    --reto: #C46A1F;
+    --reto-light: #FAE8D0;
+    --lectura: #2A7A4B;
+    --lectura-light: #D2EDE0;
+    --desafio: #A32D5E;
+    --desafio-light: #F5D0E2;
+    --meta: #8B6914;
+    --meta-light: #FFF0B3;
+    --inicio: #5A5A5A;
+    --inicio-light: #E8E8E8;
+    --board-bg: #E8DEC8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Lato', sans-serif;
+    background: var(--cream);
+    color: var(--dark);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--dark);
+    color: var(--cream);
+    text-align: center;
+    padding: 1.2rem 1rem;
+  }
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    letter-spacing: 0.03em;
+  }
+  header p {
+    font-size: 0.85rem;
+    opacity: 0.7;
+    margin-top: 0.3rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .wrapper {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+  }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+  .legend-dot {
+    width: 14px; height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  /* BOARD */
+  .board-wrap {
+    background: var(--board-bg);
+    border-radius: 16px;
+    padding: 1.2rem;
+    border: 3px solid var(--dark);
+    box-shadow: 6px 6px 0 var(--dark);
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .cell {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    border: 2.5px solid var(--dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.15s, box-shadow 0.15s;
+    user-select: none;
+    min-height: 80px;
+  }
+  .cell:hover { transform: translateY(-2px); box-shadow: 3px 3px 0 var(--dark); }
+  .cell.t-pregunta  { background: var(--pregunta-light);  border-color: var(--pregunta);  }
+  .cell.t-reto      { background: var(--reto-light);      border-color: var(--reto);      }
+  .cell.t-lectura   { background: var(--lectura-light);   border-color: var(--lectura);   }
+  .cell.t-desafio   { background: var(--desafio-light);   border-color: var(--desafio);   }
+  .cell.t-meta      { background: var(--meta-light);      border-color: var(--meta);      }
+  .cell.t-inicio    { background: var(--inicio-light);    border-color: var(--inicio);    }
+
+  .cell-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .cell.t-pregunta  .cell-num { color: var(--pregunta); }
+  .cell.t-reto      .cell-num { color: var(--reto); }
+  .cell.t-lectura   .cell-num { color: var(--lectura); }
+  .cell.t-desafio   .cell-num { color: var(--desafio); }
+  .cell.t-meta      .cell-num { color: var(--meta); }
+  .cell.t-inicio    .cell-num { color: var(--inicio); }
+
+  .cell-label {
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    opacity: 0.75;
+    text-align: center;
+    padding: 0 4px;
+    line-height: 1.2;
+    margin-top: 2px;
+  }
+
+  .tokens-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    justify-content: center;
+    margin-top: 4px;
+  }
+  .token {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid rgba(0,0,0,0.3);
+    font-size: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  }
+
+  /* ARROW indicators */
+  .arrow-row {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin: 6px 0 0;
+    font-size: 0.75rem;
+    opacity: 0.5;
+  }
+
+  /* SIDE PANEL */
+  .panel { display: flex; flex-direction: column; gap: 1rem; }
+
+  .card-box {
+    background: white;
+    border-radius: 12px;
+    border: 2.5px solid var(--dark);
+    box-shadow: 4px 4px 0 var(--dark);
+    overflow: hidden;
+    min-height: 220px;
+  }
+  .card-header {
+    padding: 0.8rem 1rem;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: white;
+  }
+  .card-body {
+    padding: 1rem;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+  .card-fuente {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 0.8rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid #eee;
+    font-style: italic;
+  }
+  .card-tipo-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+    color: white;
+  }
+  .card-tema {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.6;
+    margin-bottom: 0.4rem;
+  }
+
+  /* PLAYERS */
+  .players-box {
+    background: white;
+    border-radius: 12px;
+    border: 2.5px solid var(--dark);
+    box-shadow: 4px 4px 0 var(--dark);
+    padding: 1rem;
+  }
+  .players-box h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    margin-bottom: 0.8rem;
+    border-bottom: 2px solid var(--dark);
+    padding-bottom: 0.5rem;
+  }
+  .player-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 0.85rem;
+  }
+  .player-row:last-child { border-bottom: none; }
+  .player-token-big {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2.5px solid rgba(0,0,0,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    color: white;
+    font-size: 12px;
+    flex-shrink: 0;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  }
+  .player-info { flex: 1; }
+  .player-name { font-weight: 700; }
+  .player-pos { font-size: 0.75rem; color: #666; }
+  .active-indicator {
+    font-size: 0.7rem;
+    background: #222;
+    color: white;
+    padding: 2px 7px;
+    border-radius: 20px;
+  }
+
+  /* DICE & CONTROLS */
+  .controls-box {
+    background: white;
+    border-radius: 12px;
+    border: 2.5px solid var(--dark);
+    box-shadow: 4px 4px 0 var(--dark);
+    padding: 1rem;
+  }
+  .controls-box h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    margin-bottom: 0.8rem;
+    border-bottom: 2px solid var(--dark);
+    padding-bottom: 0.5rem;
+  }
+  .dice-area {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
+  }
+  .dice {
+    width: 64px; height: 64px;
+    background: white;
+    border: 3px solid var(--dark);
+    border-radius: 12px;
+    display: grid;
+    grid-template-areas:
+      "a . b"
+      "c d e"
+      "f . g";
+    padding: 8px;
+    gap: 4px;
+    cursor: pointer;
+    transition: transform 0.1s;
+    box-shadow: 3px 3px 0 var(--dark);
+  }
+  .dice:active { transform: scale(0.94); }
+  .dice.rolling { animation: spin 0.4s ease-out; }
+  @keyframes spin {
+    0% { transform: rotate(0deg) scale(1); }
+    30% { transform: rotate(180deg) scale(0.8); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+  .dot {
+    width: 100%; height: 100%;
+    background: var(--dark);
+    border-radius: 50%;
+    visibility: hidden;
+  }
+  .dot.show { visibility: visible; }
+  .dice-info { flex: 1; }
+  .dice-result {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .dice-hint { font-size: 0.75rem; color: #666; margin-top: 4px; }
+
+  .btn {
+    width: 100%;
+    padding: 0.7rem;
+    border: 2.5px solid var(--dark);
+    border-radius: 8px;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 3px 3px 0 var(--dark);
+    margin-bottom: 0.5rem;
+  }
+  .btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--dark); }
+  .btn-primary { background: var(--dark); color: var(--cream); }
+  .btn-secondary { background: var(--cream); color: var(--dark); }
+
+  /* SETUP */
+  .setup-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+  }
+  .setup-box {
+    background: var(--cream);
+    border: 3px solid var(--dark);
+    border-radius: 16px;
+    box-shadow: 8px 8px 0 var(--dark);
+    padding: 2rem;
+    width: 90%;
+    max-width: 460px;
+    text-align: center;
+  }
+  .setup-box h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    margin-bottom: 0.4rem;
+  }
+  .setup-box p { font-size: 0.85rem; color: #555; margin-bottom: 1.5rem; }
+  .player-inputs { display: flex; flex-direction: column; gap: 0.8rem; text-align: left; margin-bottom: 1.5rem; }
+  .player-input-row { display: flex; align-items: center; gap: 0.7rem; }
+  .player-input-row input {
+    flex: 1;
+    padding: 0.5rem 0.8rem;
+    border: 2px solid var(--dark);
+    border-radius: 8px;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.9rem;
+    background: white;
+  }
+  .num-select {
+    display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.2rem;
+  }
+  .num-btn {
+    width: 44px; height: 44px;
+    border: 2.5px solid var(--dark);
+    border-radius: 8px;
+    background: white;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Lato', sans-serif;
+  }
+  .num-btn.active { background: var(--dark); color: var(--cream); }
+
+  /* MODAL card overlay */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none; align-items: center; justify-content: center;
+    z-index: 200;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--cream);
+    border: 3px solid var(--dark);
+    border-radius: 16px;
+    box-shadow: 8px 8px 0 var(--dark);
+    width: 90%; max-width: 500px;
+    overflow: hidden;
+  }
+  .modal-head {
+    padding: 1rem 1.2rem;
+    color: white;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-head h2 { font-family: 'Playfair Display', serif; font-size: 1.2rem; }
+  .modal-close {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    border-radius: 50%;
+    width: 30px; height: 30px;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+  }
+  .modal-body { padding: 1.2rem; font-size: 0.9rem; line-height: 1.7; }
+  .modal-fuente { font-size: 0.78rem; color: #666; font-style: italic; margin-top: 0.8rem; padding-top: 0.7rem; border-top: 1px solid #ddd; }
+  .modal-actions { padding: 0 1.2rem 1.2rem; display: flex; gap: 0.6rem; }
+  .modal-actions .btn { margin: 0; }
+
+  /* WIN screen */
+  .win-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none; align-items: center; justify-content: center;
+    z-index: 300;
+  }
+  .win-overlay.open { display: flex; }
+  .win-box {
+    background: var(--cream);
+    border: 3px solid var(--dark);
+    border-radius: 16px;
+    box-shadow: 10px 10px 0 var(--dark);
+    padding: 2.5rem;
+    text-align: center;
+    width: 90%; max-width: 400px;
+  }
+  .win-box .trophy { font-size: 4rem; margin-bottom: 0.5rem; }
+  .win-box h2 { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 0.5rem; }
+  .win-box p { color: #555; margin-bottom: 1.5rem; }
+
+  /* LOG */
+  .log-box {
+    background: white;
+    border-radius: 12px;
+    border: 2.5px solid var(--dark);
+    box-shadow: 4px 4px 0 var(--dark);
+    padding: 0.8rem 1rem;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+  .log-box h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; opacity: 0.6; }
+  .log-entry { font-size: 0.78rem; padding: 3px 0; border-bottom: 1px solid #f0f0f0; color: #444; }
+  .log-entry:last-child { border-bottom: none; }
+
+  @media (max-width: 768px) {
+    .wrapper { grid-template-columns: 1fr; }
+    .cell { min-height: 60px; }
+    .cell-num { font-size: 1.1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>La Gran Travesía Lectora</h1>
+  <p>Actividad de Aprendizaje No 3 · Unidad 3 · Lectores Autónomos 2026</p>
+</header>
+
+<div class="wrapper">
+  <div>
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--pregunta-light);border:2px solid var(--pregunta)"></div><span style="color:var(--pregunta)">Pregunta</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--reto-light);border:2px solid var(--reto)"></div><span style="color:var(--reto)">Reto</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--lectura-light);border:2px solid var(--lectura)"></div><span style="color:var(--lectura)">Lectura</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--desafio-light);border:2px solid var(--desafio)"></div><span style="color:var(--desafio)">Desafío</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--meta-light);border:2px solid var(--meta)"></div><span style="color:var(--meta)">Meta</span></div>
+    </div>
+
+    <!-- Board -->
+    <div class="board-wrap">
+      <div class="board" id="board"></div>
+    </div>
+  </div>
+
+  <!-- Side Panel -->
+  <div class="panel">
+    <div class="players-box">
+      <h3>Jugadores</h3>
+      <div id="players-list"></div>
+    </div>
+
+    <div class="controls-box">
+      <h3>Turno</h3>
+      <div class="dice-area">
+        <div class="dice" id="dice" onclick="rollDice()">
+          <div class="dot" id="d1" style="grid-area:a"></div>
+          <div class="dot" id="d2" style="grid-area:b"></div>
+          <div class="dot" id="d3" style="grid-area:c"></div>
+          <div class="dot" id="d4" style="grid-area:d"></div>
+          <div class="dot" id="d5" style="grid-area:e"></div>
+          <div class="dot" id="d6" style="grid-area:f"></div>
+          <div class="dot" id="d7" style="grid-area:g"></div>
+        </div>
+        <div class="dice-info">
+          <div class="dice-result" id="dice-result">—</div>
+          <div class="dice-hint" id="dice-hint">Haz clic en el dado</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="move-btn" onclick="movePlayer()" disabled>Mover ficha ➜</button>
+      <button class="btn btn-secondary" onclick="resetGame()">Reiniciar juego</button>
+    </div>
+
+    <div class="card-box" id="card-display">
+      <div class="card-header" style="background:var(--inicio)">Casilla activa</div>
+      <div class="card-body" style="color:#888;font-style:italic;">Tira el dado y mueve tu ficha para ver la instrucción de la casilla.</div>
+    </div>
+
+    <div class="log-box">
+      <h3>Registro de turnos</h3>
+      <div id="log"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Setup Overlay -->
+<div class="setup-overlay" id="setup">
+  <div class="setup-box">
+    <h2>La Gran Travesía Lectora</h2>
+    <p>Juego de mesa sobre los temas de la Unidad 3 — Lectores Autónomos</p>
+    <p style="margin-bottom:0.8rem;font-weight:700;">¿Cuántos jugadores?</p>
+    <div class="num-select">
+      <button class="num-btn active" onclick="setNumPlayers(2)">2</button>
+      <button class="num-btn" onclick="setNumPlayers(3)">3</button>
+      <button class="num-btn" onclick="setNumPlayers(4)">4</button>
+    </div>
+    <div class="player-inputs" id="player-inputs"></div>
+    <button class="btn btn-primary" onclick="startGame()">¡Comenzar a leer! ▶</button>
+  </div>
+</div>
+
+<!-- Card Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-head" id="modal-head">
+      <h2 id="modal-title">Casilla</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="card-tema" id="modal-tema"></div>
+      <div class="card-tipo-badge" id="modal-badge"></div>
+      <div id="modal-text"></div>
+      <div class="modal-fuente" id="modal-fuente"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Win Overlay -->
+<div class="win-overlay" id="win-overlay">
+  <div class="win-box">
+    <div class="trophy">🏆</div>
+    <h2>¡Gran Lector!</h2>
+    <p id="win-text"></p>
+    <button class="btn btn-primary" onclick="resetGame()">Jugar de nuevo</button>
+  </div>
+</div>
+
+<script>
+const PLAYER_COLORS = ['#C0392B','#1A6B9A','#27AE60','#8E44AD'];
+const PLAYER_LABELS = ['A','B','C','D'];
+
+const CASILLAS = {
+  1:{tipo:'pregunta',tema:'Lectura analógica',instruccion:'Responde en voz alta o por escrito en máximo 2 minutos: ¿Qué es la lectura analógica y en qué se diferencia de la lectura digital? Menciona al menos dos características que la distingan. ✅ Si respondes correctamente, avanza 2 casillas.',fuente:'Cassany, D. (2006). Tras las líneas. Anagrama. (Cap. 1)'},
+  2:{tipo:'reto',tema:'Lectura analógica',instruccion:'Tienes 3 minutos. Toma el libro o texto físico que tengas más cerca y lee en voz alta un párrafo que te llame la atención. Luego explica en dos oraciones qué comprendiste. Los demás jugadores votan. ✅ Si aprueba, tira el dado de nuevo.',fuente:'Larrosa, J. (2003). La experiencia de la lectura. FCE.'},
+  3:{tipo:'lectura',tema:'Lectura analógica',instruccion:'"Leer un libro de papel implica una experiencia sensorial que va más allá del texto: el olor de las páginas, la textura, el peso, la posibilidad de subrayar. Esta experiencia corporal influye en la comprensión y el recuerdo" (adaptado de Mangen, 2016). 💬 Comenta: ¿has sentido eso al leer un libro físico? ✅ Si participas, avanza 1 casilla.',fuente:'Mangen, A. (2016). The digitization of literary reading. Poetics, 54, 34-46.'},
+  4:{tipo:'desafio',tema:'Desafío general',instruccion:'🎲 ADIVINANZA: "Tengo hojas pero no soy planta, tengo lomo pero no soy animal, guardo historias pero no soy memoria. ¿Qué soy?" (Respuesta: un libro). ✅ Si respondes en menos de 30 segundos, avanza 3 casillas. ❌ Si no, retrocede 1 casilla y comparte el título de un libro que hayas leído.',fuente:'Tradición oral. Recurso de animación a la lectura.'},
+  5:{tipo:'pregunta',tema:'Narrativa hipermedia',instruccion:'Responde: ¿En qué consiste la narrativa hipermedia? Explica al menos tres de sus características: no linealidad, interactividad, multimedia. Da un ejemplo concreto de un texto hipermedial que conozcas. ✅ Si respondes correctamente, avanza 2 casillas.',fuente:'Landow, G. (2009). Hipertexto 3.0. Paidós. (Cap. 2)'},
+  6:{tipo:'reto',tema:'Narrativa hipermedia',instruccion:'Abre en tu dispositivo cualquier sitio web de noticias o literatura digital. Identifica y nombra en voz alta al menos 3 elementos hipermediales: enlaces, videos, gráficos interactivos, audios, etc. ⏱ Tienes 3 minutos. ✅ Si lo logras, avanza 2 casillas.',fuente:'Página web a elección del jugador. Sugerencia: www.eltiempo.com'},
+  7:{tipo:'lectura',tema:'Narrativa hipermedia',instruccion:'"En la narrativa hipermedia el lector no sigue un camino único: elige su propio recorrido entre nodos de información conectados por enlaces. Esta libertad exige nuevas competencias lectoras: saber orientarse, evaluar rutas y construir sentido desde fragmentos" (adaptado de Landow, 2009). 💬 Debate: ¿eso hace al lector más activo o más perdido? ✅ Todos los que participen avanzan 1 casilla.',fuente:'Landow, G. (2009). Hipertexto 3.0. Paidós.'},
+  8:{tipo:'desafio',tema:'Desafío general',instruccion:'😄 CHISTE LITERARIO: "¿Por qué los libros son los mejores amigos? Porque nunca te dicen: ¡ya te conté eso antes!" Tu penitencia: recita en voz alta el título de 5 libros en menos de 20 segundos. ✅ Si lo logras, avanza 2 casillas. ❌ Si no, pierde un turno (pero ganas risas).',fuente:'Tradición oral. Recurso de animación a la lectura.'},
+  9:{tipo:'pregunta',tema:'Lector crítico — ambiente analógico',instruccion:'¿Cuáles son las características de un lector crítico en ambientes analógicos? Menciona al menos 4: capacidad de inferir, cuestionar el texto, identificar sesgos, reconocer el contexto del autor, relacionar con otros textos. ⏱ Tiempo: 2 minutos. ✅ Respuesta correcta: avanza 2 casillas.',fuente:'Cassany, D. (2006). Tras las líneas. Anagrama. (Cap. 5)'},
+  10:{tipo:'reto',tema:'Lector crítico — ambiente electrónico',instruccion:'Tienes 4 minutos. Busca en internet una noticia reciente. Aplica al menos 3 criterios de lectura crítica: identifica la fuente, verifica si hay fecha y autor, compara con otra fuente, detecta posibles sesgos. 🗣 Explica en voz alta tus conclusiones. ✅ Si participas, avanza 2 casillas.',fuente:'Verificación: https://colombiacheck.com — https://factcheck.org'},
+  11:{tipo:'lectura',tema:'Lector crítico',instruccion:'"El lector crítico no acepta el texto como una verdad absoluta: lo interroga, lo contrasta, lo sitúa en su contexto histórico y social. En ambientes digitales, esta habilidad es aún más urgente ante la sobreabundancia de información y la desinformación" (adaptado de Cassany, 2006). 💬 Discute: ¿en qué situaciones recientes has necesitado ser un lector crítico? ✅ Quien comparte un ejemplo real avanza 1 casilla.',fuente:'Cassany, D. (2006). Tras las líneas. Anagrama.'},
+  12:{tipo:'desafio',tema:'Desafío general',instruccion:'🎭 PENITENCIA LECTORA: Recita en voz alta, con toda la emoción posible, el inicio de cualquier cuento o novela que recuerdes. Si no recuerdas ninguno completo, improvisa el inicio de una historia en 3 oraciones. Los demás jugadores califican del 1 al 5. ✅ Si obtienes promedio ≥ 3, avanza 2 casillas.',fuente:'Actividad de animación a la lectura en voz alta.'},
+  13:{tipo:'pregunta',tema:'Tipos de lectores',instruccion:'Explica la clasificación de los tipos de lectores según sus patrones de lectura. Menciona y describe al menos 4 tipos (por ejemplo: lector intensivo, extensivo, lector en red, lector hipertextual, lector de pantalla). ⏱ Tiempo: 2 minutos. ✅ Correcto: avanza 2 casillas.',fuente:'Chartier, R. (1994). El orden de los libros. Gedisa.'},
+  14:{tipo:'reto',tema:'Tipos de lectores',instruccion:'Reflexiona 2 minutos: ¿cuál es tu patrón de lectura predominante? ¿Lees de corrido o saltas partes? ¿Prefieres libros físicos o digitales? ¿Lees varios textos a la vez o uno a la vez? 🗣 Clasifícate en un tipo de lector y argumenta por qué. ✅ Quien comparte con honestidad avanza 2 casillas.',fuente:'Wolf, M. (2008). Proust and the Squid. Harper.'},
+  15:{tipo:'lectura',tema:'Tipos de lectores / patrones de lectura',instruccion:'"Los patrones de lectura individuales son el resultado de la historia lectora de cada persona: los textos que ha leído, las circunstancias en que lo ha hecho y los hábitos que ha cultivado. No existe un único tipo de lector: la diversidad es la norma" (adaptado de Wolf, 2008). 💬 Comparte: ¿qué evento o persona marcó tu relación con la lectura? ✅ Quien responde avanza 1 casilla.',fuente:'Wolf, M. (2008). Proust and the Squid: The Story and Science of the Reading Brain. Harper.'},
+  16:{tipo:'desafio',tema:'Desafío general',instruccion:'🎲 ADIVINANZA LITERARIA: "Soy un personaje que siempre habla pero nunca dice su nombre, estoy en miles de libros pero en ninguno soy el mismo. ¿Quién soy?" (Respuesta: el narrador). ✅ Si respondes en menos de 1 minuto, avanza 2 casillas. ❌ Si no, propón tu propia adivinanza literaria para el siguiente jugador.',fuente:'Tradición oral. Recurso de animación a la lectura.'},
+  17:{tipo:'pregunta',tema:'Lector modelo de Umberto Eco',instruccion:'¿En qué consiste el concepto de "lector modelo" de Umberto Eco? Explica: cómo lo define Eco, qué relación tiene con el "autor modelo" y por qué el texto "prevé" un tipo de lector ideal. ⏱ Tiempo: 2 minutos. ✅ Respuesta completa: avanza 3 casillas.',fuente:'Eco, U. (1981). Lector in fabula. Lumen. (Cap. 3)'},
+  18:{tipo:'reto',tema:'Lector modelo de Umberto Eco',instruccion:'Elige un texto que conozcas (novela, artículo, canción). Explica en 2 minutos: ¿qué tipo de lector modelo parece prever ese texto? ¿Qué conocimientos, actitudes o competencias exige del lector ideal? 🗣 Si tu análisis es coherente con la teoría de Eco, avanza 2 casillas.',fuente:'Eco, U. (1981). Lector in fabula. Lumen.'},
+  19:{tipo:'lectura',tema:'Lector modelo de Umberto Eco',instruccion:'"El texto postula a su destinatario como condición indispensable no solo de su propia capacidad comunicativa concreta, sino también de la propia potencialidad significativa" (Eco, 1981, parafraseado). Es decir: el texto construye al lector que necesita. 💬 Debate: ¿alguna vez sentiste que un texto "no era para ti"? ¿Por qué? ✅ Todos los que participen avanzan 1 casilla.',fuente:'Eco, U. (1981). Lector in fabula. Lumen.'},
+  20:{tipo:'meta',tema:'¡META! — Lectura autónoma',instruccion:'🏆 ¡ÚLTIMA CASILLA! Propón 3 acciones concretas y realizables que cualquier persona pueda implementar en su hogar o trabajo para fomentar la lectura autónoma. Deben ser específicas, originales y viables. Explícalas en 2 minutos. ✅ Si convences a los demás jugadores, eres el Gran Lector y ¡GANAS EL JUEGO!',fuente:'Pennac, D. (1993). Como una novela. Anagrama. / Petit, M. (1999). Nuevos acercamientos a los jóvenes y la lectura. FCE.'},
+};
+
+const TIPO_COLORS = {
+  pregunta: 'var(--pregunta)',
+  reto: 'var(--reto)',
+  lectura: 'var(--lectura)',
+  desafio: 'var(--desafio)',
+  meta: 'var(--meta)',
+};
+const TIPO_LABELS = {
+  pregunta: 'Pregunta', reto: 'Reto', lectura: 'Lectura', desafio: 'Desafío', meta: '¡Meta!'
+};
+
+// Board layout: serpentine 4 rows of 5
+// Row1: 1-5 L→R, Row2: 6-10 R→L (visual), Row3: 11-15 L→R, Row4: 16-20 R→L
+const BOARD_ORDER = [
+  [1,2,3,4,5],
+  [10,9,8,7,6],
+  [11,12,13,14,15],
+  [20,19,18,17,16],
+];
+
+let numPlayers = 2;
+let players = [];
+let currentPlayer = 0;
+let diceValue = null;
+let diceRolled = false;
+let gameStarted = false;
+
+function cellType(n) {
+  if (n === 0) return 'inicio';
+  if (n === 20) return 'meta';
+  return CASILLAS[n]?.tipo || 'inicio';
+}
+
+function cellLabel(n) {
+  if (n === 0) return 'Inicio';
+  if (n === 20) return '¡Meta!';
+  return TIPO_LABELS[CASILLAS[n]?.tipo] || '';
+}
+
+function buildBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  BOARD_ORDER.forEach((row, ri) => {
+    row.forEach((n) => {
+      const t = cellType(n);
+      const cell = document.createElement('div');
+      cell.className = `cell t-${t}`;
+      cell.id = `cell-${n}`;
+      cell.onclick = () => showCasilla(n);
+      cell.innerHTML = `
+        <div class="cell-num">${n === 0 ? '★' : n}</div>
+        <div class="cell-label">${cellLabel(n)}</div>
+        <div class="tokens-row" id="tokens-${n}"></div>`;
+      board.appendChild(cell);
+    });
+  });
+}
+
+function renderTokens() {
+  // Clear all token spots
+  for(let i=0;i<=20;i++){
+    const el=document.getElementById(`tokens-${i}`);
+    if(el) el.innerHTML='';
+  }
+  // Place tokens
+  players.forEach((p,i)=>{
+    const pos = p.position;
+    const slot = document.getElementById(`tokens-${pos}`);
+    if(slot){
+      const t=document.createElement('div');
+      t.className='token';
+      t.style.background=PLAYER_COLORS[i];
+      t.textContent=PLAYER_LABELS[i];
+      slot.appendChild(t);
+    }
+  });
+}
+
+function renderPlayersList() {
+  const list = document.getElementById('players-list');
+  list.innerHTML = '';
+  players.forEach((p,i)=>{
+    const isActive = i===currentPlayer && gameStarted;
+    list.innerHTML += `
+      <div class="player-row">
+        <div class="player-token-big" style="background:${PLAYER_COLORS[i]}">${PLAYER_LABELS[i]}</div>
+        <div class="player-info">
+          <div class="player-name">${p.name}</div>
+          <div class="player-pos">Casilla ${p.position} de 20</div>
+        </div>
+        ${isActive ? '<span class="active-indicator">Turno</span>' : ''}
+      </div>`;
+  });
+}
+
+function setNumPlayers(n) {
+  numPlayers = n;
+  document.querySelectorAll('.num-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.num-btn')[n-2].classList.add('active');
+  buildPlayerInputs();
+}
+
+function buildPlayerInputs() {
+  const c = document.getElementById('player-inputs');
+  const names = ['Ana','Bruno','Carla','David'];
+  c.innerHTML = '';
+  for(let i=0;i<numPlayers;i++){
+    c.innerHTML += `
+      <div class="player-input-row">
+        <div class="player-token-big" style="background:${PLAYER_COLORS[i]};width:28px;height:28px;border-radius:50%;border:2px solid rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:12px;flex-shrink:0">${PLAYER_LABELS[i]}</div>
+        <input id="pname-${i}" placeholder="Nombre del jugador ${i+1}" value="${names[i]}">
+      </div>`;
+  }
+}
+
+function startGame() {
+  players = [];
+  for(let i=0;i<numPlayers;i++){
+    const n = document.getElementById(`pname-${i}`)?.value || `Jugador ${i+1}`;
+    players.push({name: n.trim()||`Jugador ${i+1}`, position: 0});
+  }
+  currentPlayer = 0;
+  diceRolled = false;
+  diceValue = null;
+  gameStarted = true;
+  document.getElementById('setup').style.display='none';
+  buildBoard();
+  renderTokens();
+  renderPlayersList();
+  addLog(`🎮 Juego iniciado. Turno de ${players[0].name}.`);
+  document.getElementById('dice-hint').textContent=`Turno de ${players[0].name}`;
+  document.getElementById('move-btn').disabled = true;
+}
+
+// DICE
+const DICE_PATTERNS = {
+  1:[[false,false,false,false,true,false,false]],
+  2:[[true,false,false,false,false,false,true]],
+  3:[[true,false,false,false,true,false,true]],
+  4:[[true,true,false,false,false,true,true]],
+  5:[[true,true,false,true,false,true,true]],
+  6:[[true,true,true,false,true,true,true]],
+};
+
+function showDice(val) {
+  const dots=DICE_PATTERNS[val][0];
+  ['d1','d2','d3','d4','d5','d6','d7'].forEach((id,i)=>{
+    document.getElementById(id).className='dot'+(dots[i]?' show':'');
+  });
+}
+
+function rollDice() {
+  if(!gameStarted||diceRolled) return;
+  const die=document.getElementById('dice');
+  die.classList.add('rolling');
+  setTimeout(()=>die.classList.remove('rolling'),400);
+
+  let count=0;
+  const interval=setInterval(()=>{
+    const temp=Math.ceil(Math.random()*6);
+    showDice(temp);
+    count++;
+    if(count>8){
+      clearInterval(interval);
+      diceValue=Math.ceil(Math.random()*6);
+      showDice(diceValue);
+      document.getElementById('dice-result').textContent=diceValue;
+      document.getElementById('dice-hint').textContent=`${players[currentPlayer].name} sacó ${diceValue}`;
+      diceRolled=true;
+      document.getElementById('move-btn').disabled=false;
+    }
+  },60);
+}
+
+function movePlayer() {
+  if(!diceRolled) return;
+  const p=players[currentPlayer];
+  const oldPos=p.position;
+  let newPos=Math.min(p.position+diceValue,20);
+  p.position=newPos;
+  renderTokens();
+  addLog(`${players[currentPlayer].name}: ${oldPos} → ${newPos} (dado: ${diceValue})`);
+  showCasilla(newPos);
+  showCardPanel(newPos);
+  diceRolled=false;
+  document.getElementById('move-btn').disabled=true;
+  document.getElementById('dice-result').textContent='—';
+
+  if(newPos>=20){
+    setTimeout(()=>showWin(players[currentPlayer].name),400);
+    return;
+  }
+  currentPlayer=(currentPlayer+1)%numPlayers;
+  renderPlayersList();
+  document.getElementById('dice-hint').textContent=`Turno de ${players[currentPlayer].name}`;
+}
+
+function showCardPanel(n) {
+  const box=document.getElementById('card-display');
+  if(n===0){
+    box.innerHTML='<div class="card-header" style="background:var(--inicio)">Casilla de inicio</div><div class="card-body">¡El juego comienza aquí!</div>';
+    return;
+  }
+  const c=CASILLAS[n];
+  if(!c) return;
+  const col=TIPO_COLORS[c.tipo]||'#555';
+  box.innerHTML=`
+    <div class="card-header" style="background:${col}">Casilla ${n}</div>
+    <div class="card-body">
+      <div class="card-tema">${c.tema}</div>
+      <span class="card-tipo-badge" style="background:${col}">${TIPO_LABELS[c.tipo]}</span>
+      <div style="font-size:0.85rem;line-height:1.6;margin-top:0.4rem">${c.instruccion}</div>
+      <div class="card-fuente">${c.fuente}</div>
+    </div>`;
+}
+
+function showCasilla(n) {
+  if(n===0) return;
+  const c=CASILLAS[n];
+  if(!c) return;
+  const col=TIPO_COLORS[c.tipo]||'#555';
+  document.getElementById('modal-head').style.background=col;
+  document.getElementById('modal-title').textContent=`Casilla ${n}`;
+  document.getElementById('modal-tema').textContent=c.tema;
+  const badge=document.getElementById('modal-badge');
+  badge.textContent=TIPO_LABELS[c.tipo];
+  badge.style.background=col;
+  document.getElementById('modal-text').textContent=c.instruccion;
+  document.getElementById('modal-fuente').textContent=c.fuente;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+function showWin(name){
+  document.getElementById('win-text').textContent=`${name} llegó a la meta y completó el reto final. ¡Es el Gran Lector!`;
+  document.getElementById('win-overlay').classList.add('open');
+  addLog(`🏆 ¡${name} GANÓ EL JUEGO!`);
+}
+
+function addLog(msg){
+  const log=document.getElementById('log');
+  const e=document.createElement('div');
+  e.className='log-entry';
+  e.textContent=msg;
+  log.insertBefore(e,log.firstChild);
+  if(log.children.length>20) log.removeChild(log.lastChild);
+}
+
+function resetGame(){
+  document.getElementById('win-overlay').classList.remove('open');
+  document.getElementById('modal').classList.remove('open');
+  gameStarted=false;
+  diceRolled=false;
+  diceValue=null;
+  document.getElementById('dice-result').textContent='—';
+  document.getElementById('dice-hint').textContent='Haz clic en el dado';
+  document.getElementById('move-btn').disabled=true;
+  document.getElementById('log').innerHTML='';
+  showDice(1);
+  document.getElementById('setup').style.display='flex';
+  buildPlayerInputs();
+}
+
+// Init
+buildBoard();
+buildPlayerInputs();
+document.querySelectorAll('.num-btn')[0].classList.add('active');
+showDice(1);
+</script>
+</body>
+</html>
